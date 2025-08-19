@@ -89,53 +89,56 @@ def run_module():
         cml_facts['details'] = lab.details()
         cml_facts['nodes'] = {}
         for node in lab.nodes():
-            cml_facts['nodes'][node.label] = {
-                'state': node.state,
-                'image_definition': node.image_definition,
-                'node_definition': node.node_definition,
-                'cpus': node.cpus,
-                'ram': node.ram,
-                'config': node.config,
-                'data_volume': node.data_volume,
-                'tags': node.tags(),
-                'interfaces': {}
-            }
-            ansible_host = None
-            ansible_host_interface = None
-            for interface in node.interfaces():
-                if node.state == 'BOOTED':
-                    # Fill out the oper data if the node is not fully booted
-                    interface_data = {
-                        'state': interface.state,
-                        'ipv4_addresses': interface.discovered_ipv4,
-                        'ipv6_addresses': interface.discovered_ipv6,
-                        'mac_address': interface.discovered_mac_address,
-                        'is_physical': interface.is_physical,
-                        'readbytes': interface.readbytes,
-                        'readpackets': interface.readpackets,
-                        'writebytes': interface.writebytes,
-                        'writepackets': interface.writepackets
-                    }
-                    # See if we can use this for ansible_host
-                    if interface.discovered_ipv4 and not ansible_host:
-                        ansible_host = interface.discovered_ipv4[0]
-                        ansible_host_interface = interface.label
-                else:
-                    # Otherwise, set oper data to empty
-                    interface_data = {
-                        'state': interface.state,
-                        'ipv4_addresses': [],
-                        'ipv6_addresses': [],
-                        'mac_address': None,
-                        'is_physical': interface.is_physical,
-                        'readbytes': interface.readbytes,
-                        'readpackets': interface.readpackets,
-                        'writebytes': interface.writebytes,
-                        'writepackets': interface.writepackets
-                    }
-                cml_facts['nodes'][node.label]['interfaces'][interface.label] = interface_data
-            cml_facts['nodes'][node.label]['ansible_host'] = ansible_host
-            cml_facts['nodes'][node.label]['ansible_host_interface'] = ansible_host_interface
+            try:
+              cml_facts['nodes'][node.label] = {
+                  'state': node.state,
+                  'image_definition': node.image_definition,
+                  'node_definition': node.node_definition,
+                  'cpus': node.cpus,
+                  'ram': node.ram,
+                  'config': node.config,
+                  'data_volume': node.data_volume,
+                  'tags': node.tags(),
+                  'interfaces': {}
+              }
+              ansible_host = None
+              ansible_host_interface = None
+              for interface in node.interfaces():
+                  if node.state == 'BOOTED':
+                      # Fill out the oper data if the node is not fully booted
+                      interface_data = {
+                          'state': interface.state,
+                          'ipv4_addresses': interface.discovered_ipv4,
+                          'ipv6_addresses': interface.discovered_ipv6,
+                          'mac_address': interface.discovered_mac_address,
+                          'is_physical': interface.is_physical,
+                          'readbytes': interface.readbytes,
+                          'readpackets': interface.readpackets,
+                          'writebytes': interface.writebytes,
+                          'writepackets': interface.writepackets
+                      }
+                      # See if we can use this for ansible_host
+                      if interface.discovered_ipv4 and not ansible_host:
+                          ansible_host = interface.discovered_ipv4[0]
+                          ansible_host_interface = interface.label
+                  else:
+                      # Otherwise, set oper data to empty
+                      interface_data = {
+                          'state': interface.state,
+                          'ipv4_addresses': [],
+                          'ipv6_addresses': [],
+                          'mac_address': None,
+                          'is_physical': interface.is_physical,
+                          'readbytes': interface.readbytes,
+                          'readpackets': interface.readpackets,
+                          'writebytes': interface.writebytes,
+                          'writepackets': interface.writepackets
+                      }
+                  cml_facts['nodes'][node.label]['interfaces'][interface.label] = interface_data
+              cml_facts['nodes'][node.label]['ansible_host'] = ansible_host
+              cml_facts['nodes'][node.label]['ansible_host_interface'] = ansible_host_interface
+            except:
+              pass
     cml.result['cml_facts'] = cml_facts
     cml.exit_json(**cml.result)
 
